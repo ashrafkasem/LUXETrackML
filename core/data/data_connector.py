@@ -7,11 +7,7 @@ class DataConnector(ABC):
         pass
 
     @abstractmethod
-    def make_hits(self):
-        pass
-
-    @abstractmethod
-    def make_particles(self):
+    def make_partial_df(self):
         pass
 
     @abstractmethod

@@ -30,17 +30,20 @@ class LUXEDataConnector(DataConnector):
 
         total_df["h_layer"] = self.make_layer()
         total_df["h_stave"] = self.make_stave()
-        total_df['nhits'] = self.make_hits(total_df, groupvar =["event","particle_id"], count_var= "particle_id")
+        total_df['nhits'] = self.make_nhits(total_df, groupvar =["event","particle_id"], count_var= "particle_id")
 
         return total_df
 
     def readfile(self, File):
         return pd.read_pickle(File)
 
-    def make_hits(self, df, groupvar = ["event","particle_id"],  count_var= "particle_id"):
+    def make_nhits(self, df, groupvar = ["event","particle_id"],  count_var= "particle_id"):
         return df.groupby(groupvar)[count_var].transform('count')
-
-
+    
+    def make_partial_df(self,truth_df, hits_vars):
+        df = truth_df[hits_vars].drop_duplicates().reset_index(drop=True)
+        return df.convert_dtypes()
+       
     def set_detector_maps(self, df, col):
         self.layer_conditions = []
         self.layer_choices = []
@@ -63,12 +66,8 @@ class LUXEDataConnector(DataConnector):
     def make_layer(self):
         return np.select(self.layer_conditions, self.layer_choices, default=np.nan)
         
-
     def make_stave(self):
         return np.select(self.stave_conditions, self.stave_choices, default=np.nan)
-
-    def make_particles():
-        pass
 
     def make_truth():
         pass
