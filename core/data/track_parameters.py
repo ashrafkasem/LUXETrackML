@@ -1,60 +1,65 @@
-import numpy as np
 import pandas as pd
+import numpy as np
 
-def cal_deta(hitpair):
-    r1 = hitpair.r_1
-    r2 = hitpair.r_2
-    z1 = hitpair.z_1
-    z2 = hitpair.z_2
+def doublet_criteria_check(hits_df, z_value):
+#     print(hits_df.columns)
+    hits_df = get_coordinate_at_z_value(hits_df,z_value)
+    hits_df["dx/x0"] = (hits_df.h_x_2 - hits_df.h_x_1) /hits_df['x_at_z_value']
     
-    R1 = np.sqrt(r1**2 + z1**2)
-    R2 = np.sqrt(r2**2 + z2**2)
-    theta1 = np.arccos(z1/R1)
-    theta2 = np.arccos(z2/R2)
-#     theta1 = np.arctan(r1/z1)
-#     theta2 = np.arctan(r2/z2)
-    eta1 = -np.log(np.tan(theta1/2.0))
-    eta2 = -np.log(np.tan(theta2/2.0))
-    return eta1 - eta2
+    mean = np.mean(hits_df["dx/x0"]) 
+    std = np.std(hits_df["dx/x0"])
+    print(mean, std)
+    hits_df["satisfied"] = False
+    
+    hits_df["dx"] = hits_df.h_x_2 - hits_df.h_x_1
 
-def calc_dphi(phi1, phi2):
-    """Computes phi2-phi1 given in range [-pi,pi]"""
-    dphi = phi2 - phi1
-    dphi[dphi > np.pi] -= 2*np.pi
-    dphi[dphi < -np.pi] += 2*np.pi
-    return dphi
+    satisfied_mask = abs(hits_df["dx/x0"] - mean ) <= 3*std
+    hits_df.loc[satisfied_mask, "satisfied"] = True
+    return hits_df
 
+def get_coordinate_at_z_value(hits_df, z_value):
 
-def create_segments(hits, gid_start, gid_end, gid_keys='layer_id'):
-    segments = []
-    hit_gid_groups = hits.groupby(gid_keys)
-
-    # Loop over geometry ID pairs
-    for gid1, gid2 in zip(gid_start, gid_end):
-        hits1 = hit_gid_groups.get_group(gid1)
-        hits2 = hit_gid_groups.get_group(gid2)
-
-        # Join all hit pairs together
-        hit_pairs = pd.merge(
-            hits1.reset_index(), hits2.reset_index(),
-            how='inner', on='evtid', suffixes=('_1', '_2'))
+    dx_p1_p2 = hits_df.h_x_2 - hits_df.h_x_1
+    dy_p1_p2 = hits_df.h_y_2 - hits_df.h_y_1
+    dz_p1_p2 = hits_df.h_z_2 - hits_df.h_z_1
+    
+    x_at_z_value = hits_df.h_x_2 - dx_p1_p2 * abs(hits_df.h_z_2 - z_value) / dz_p1_p2
+    y_at_z_value = hits_df.h_y_2 - dy_p1_p2 * abs(hits_df.h_z_1 - z_value) / dz_p1_p2
+    
+    hits_df['x_at_z_value'] = x_at_z_value
+    hits_df['y_at_z_value'] = y_at_z_value    
+    
+    z1_mask = (hits_df.h_z_1 == z_value)
+    z2_mask = (hits_df.h_z_2 == z_value)
         
-#         print(hit_pairs.columns)
-        
-        
-        # Calculate coordinate differences
-        dphi = calc_dphi(hit_pairs.phi_1, hit_pairs.phi_2)
-        dz = hit_pairs.z_2 - hit_pairs.z_1
-        dr = hit_pairs.r_2 - hit_pairs.r_1
-        phi_slope = dphi / dr
-        z0 = hit_pairs.z_1 - hit_pairs.r_1 * dz / dr
-        deta = cal_deta(hit_pairs)
+    hits_df.loc[z1_mask, 'x_at_z_value'] = hits_df.loc[z1_mask,"h_x_1"]
+    hits_df.loc[z1_mask, 'y_at_z_value'] = hits_df.loc[z1_mask, "h_y_1"]
+    hits_df.loc[z2_mask, 'x_at_z_value'] = hits_df.loc[z2_mask, "h_x_2"]
+    hits_df.loc[z2_mask, 'y_at_z_value'] = hits_df.loc[z2_mask,"h_y_2"]
+    return hits_df
 
-        # Identify the true pairs
-        y = (hit_pairs.particle_id_1 == hit_pairs.particle_id_2) & (hit_pairs.particle_id_1 != 0)
+def xz_angle(hits):
+    """Returns the angle in the xz-plane with respect to beam axis in z direction.
+    :return
+        angle in the xz plane.
+    """
+    return np.arctan2((hits.h_x_2 - hits.h_x_1),
+                    (hits.h_z_2 - hits.h_z_1))
 
-        # Put the results in a new dataframe
-        df_pairs = hit_pairs[['evtid', 'index_1', 'index_2', 'hit_id_1', 'hit_id_2', 'layer_id_1', 'layer_id_2',"particle_id_1",'particle_id_2', 'z_1', 'z_2',"r_1","r_2"]].assign(dphi=dphi, dz=dz, dr=dr, y=y, phi_slope=phi_slope, z0=z0, deta=deta)
-        print('processed:', gid1, gid2, "True edges {} and Fake Edges {}".format(df_pairs[df_pairs['y']==True].shape[0], df_pairs[df_pairs['y']==False].shape[0]))
-        segments.append(df_pairs)
-    return segments
+def yz_angle(hits):
+    """Returns the angle in the xz-plane with respect to beam axis in z direction.
+    :return
+        angle in the yz plane.
+    """
+    return np.arctan2((hits.h_y_2 - hits.h_y_1),
+                (hits.h_z_2 - hits.h_z_1))
+
+
+def optimize_datatype(df: pd.DataFrame) -> pd.DataFrame:
+    floats = df.select_dtypes(include=['float64']).columns.tolist()
+    df[floats] = df[floats].apply(pd.to_numeric, downcast='float')
+    ints = df.select_dtypes(include=['int64']).columns.tolist()
+    df[ints] = df[ints].apply(pd.to_numeric, downcast='integer')
+    return df
+
+
