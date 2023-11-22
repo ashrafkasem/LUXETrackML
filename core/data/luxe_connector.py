@@ -3,6 +3,7 @@ import numpy as np
 
 from core.data.data_connector import DataConnector 
 from core.utiles import getFileList
+import os
 
 class LUXEDataConnector(DataConnector): 
     def __init__(self, data_dir, output_dir, start_event, end_event):
@@ -76,3 +77,11 @@ class LUXEDataConnector(DataConnector):
         df = df[df['h_CellID'].notna()]
         return df
 
+    def write_outfiles(self, hits_df, particles_df, truth_df):
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+        for i in range(self.start_event, self.end_event+1): 
+            hits_df[hits_df["event"] == i].to_csv(os.path.join(self.output_dir, "hits_%04d.csv" %i ), index=False)
+            particles_df[particles_df["event"] == i].to_csv(os.path.join(self.output_dir, "particles_%04d.csv" %i), index=False)
+            truth_df[truth_df["event"] == i].to_csv(os.path.join(self.output_dir, "truth_%04d.csv" %i), index=False)
+        
