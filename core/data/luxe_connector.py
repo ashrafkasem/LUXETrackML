@@ -1,21 +1,20 @@
 import pandas as pd
 import numpy as np
-
 from core.data.data_connector import DataConnector 
 from core.utiles import getFileList
 import os
 
 class LUXEDataConnector(DataConnector): 
-    def __init__(self, data_dir, output_dir, start_event, end_event):
+    def __init__(self, data_dir, output_dir):#, start_event, end_event):
         self.data_dir = data_dir
         self.output_dir = output_dir
-        self.start_event = start_event
-        self.end_event = end_event
+        # self.start_event = start_event
+        # self.end_event = end_event
         self.layer_map = {1:[0,4000], 2:[4000,4100], 3:[4100,4200], 4:[4200,5000]}
         self.stave_map = {1:[3955,3961], 2:[3961,4055], 3:[4055,4061], 4:[4061,4155], 5: [4155,4161], 6: [4161,4255], 7:[4255,4261 ], 8:[4261,4300]}
 
-    def readfiles(self):
-        FileList = getFileList(self.data_dir, self.start_event, self.end_event)
+    def readfiles(self, FileList):
+        # FileList = getFileList(self.data_dir, self.start_event, self.end_event)
 
         dfList = []
 
@@ -77,11 +76,12 @@ class LUXEDataConnector(DataConnector):
         df = df[df['h_CellID'].notna()]
         return df
 
-    def write_outfiles(self, hits_df, particles_df, truth_df):
+    def write_outfiles(self, df, type="truth"):#, particles_df, truth_df):
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-        for i in range(self.start_event, self.end_event+1): 
-            hits_df[hits_df["event"] == i].to_csv(os.path.join(self.output_dir, "hits_%04d.csv" %i ), index=False)
-            particles_df[particles_df["event"] == i].to_csv(os.path.join(self.output_dir, "particles_%04d.csv" %i), index=False)
-            truth_df[truth_df["event"] == i].to_csv(os.path.join(self.output_dir, "truth_%04d.csv" %i), index=False)
-        
+        low_evt = df["event"].min()
+        high_evt = df["event"].max()
+        df.to_csv(os.path.join(self.output_dir, f"{type}_%04d_%04d.csv" %(low_evt,high_evt) ), index=False)
+        # particles_df.to_csv(os.path.join(self.output_dir, "particles_%04d_%04d.csv" %(low_evt,high_evt) ), index=False)
+        # truth_df.to_csv(os.path.join(self.output_dir, "truth_%04d_%04d.csv" %(low_evt,high_evt) ), index=False)
+    
