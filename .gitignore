@@ -1,3 +1,10 @@
+core/__pycache__/
 core/__pycache__/utiles.cpython-310.pyc
+core/data/__pycache__/
 core/data/__pycache__/data_connector.cpython-310.pyc
 core/data/__pycache__/luxe_connector.cpython-310.pyc
+output
+output/*
+output/*/*
+venv
+venv/*
