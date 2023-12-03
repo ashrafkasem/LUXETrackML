@@ -141,6 +141,8 @@ if __name__ == "__main__":
         subFile.write("\n")
         subFile.write('Requirements  = ( OpSysAndVer == "CentOS7")')
         subFile.write("\n")
+        subFile.write('Request_Memory = 8192M')
+        subFile.write("\n")
         # subFile.write("+RequestRuntime = 6*60*60")
         subFile.write("\n")
         subFile.write("queue DIR matching dirs "+outdir+"/job_*/")
