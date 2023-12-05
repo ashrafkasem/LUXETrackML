@@ -112,8 +112,8 @@ if __name__=='__main__':
             os.makedirs(f"{logs}")
 
         for i, file_ in enumerate(list_of_files):
-            start_event = int(file_.replace(".csv","").split("_")[1])
-            end_event = int(file_.replace(".csv","").split("_")[2])
+            start_event = int(file_.split("/")[-1].replace(".csv","").split("_")[1])
+            end_event = int(file_.split("/")[-1].replace(".csv","").split("_")[2])
             temp_list_of_events= range(start_event,end_event+1)
             print(f"sumitting job for the following list of files:{range(start_event,end_event+1)}")
             for evt in temp_list_of_events:
