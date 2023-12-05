@@ -3,8 +3,16 @@ core/__pycache__/utiles.cpython-310.pyc
 core/data/__pycache__/
 core/data/__pycache__/data_connector.cpython-310.pyc
 core/data/__pycache__/luxe_connector.cpython-310.pyc
+core/policies/__pycache__
 output
 output/*
 output/*/*
 venv
 venv/*
+*.csv
+*.ipynb
+.vscode
+*.DS_Store
+*/*.DS_Store
+*/*/*.DS_Store
+*/*//*/*.DS_Store
