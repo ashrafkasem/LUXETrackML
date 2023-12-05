@@ -110,7 +110,8 @@ if __name__=='__main__':
 
         if not os.path.exists(f"{logs}"):
             os.makedirs(f"{logs}")
-
+        
+        job_counter = 0
         for i, file_ in enumerate(list_of_files):
             start_event = int(file_.split("/")[-1].replace(".csv","").split("_")[1])
             end_event = int(file_.split("/")[-1].replace(".csv","").split("_")[2])
@@ -139,6 +140,7 @@ if __name__=='__main__':
                 exec_.write(f"rm -rf {confDir}/processing"+"\n")
                 exec_.write("echo 'done job' >> "+confDir+"/done"+"\n")              
                 exec_.close()
+                job_counter+=1
 
         subFilename = os.path.join(outdir,"submitAllJobs.conf")
         subFile = open(subFilename,"w+")
@@ -163,7 +165,7 @@ if __name__=='__main__':
         subFile.write("\n")
         subFile.write("queue DIR matching dirs "+outdir+"/job_*/")
         subFile.close()
-        submit_or_not = input(f"{i+1} jobs created, do you want to submit? Please enter 'yes' or 'no':")
+        submit_or_not = input(f"{job_counter+1} jobs created, do you want to submit? Please enter 'yes' or 'no':")
         if submit_or_not.lower().strip()[0] == "y":
             os.system("condor_submit "+subFilename)
         elif submit_or_not.lower().strip()[0] == "n":
