@@ -9,7 +9,7 @@ from random import shuffle
 import tensorflow as tf
 # import internal scripts
 from core.tools import *
-from test import test
+from core.test import test
 ###############################################################################
 def batch_train_step(n_step):
     '''combines multiple  graph inputs and executes a step on their mean'''
@@ -49,7 +49,7 @@ def batch_train_step(n_step):
 if __name__ == '__main__':
     # Read config file
     config = load_config(parse_args())
-    tools.config = config
+    # tools.config = config
 
     # Set GPU variables
     os.environ["CUDA_VISIBLE_DEVICES"] = config['gpu']

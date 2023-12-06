@@ -2,7 +2,7 @@ import numpy as np
 import glob
 
 xi=7.0
-data_dir = '/lustre/fs23/group/nic/ctuysuz/repos/QuantumComputing/GNN/'
+data_dir = './output'
 file_lists = sorted(glob.glob(f"{data_dir}/job_*/stats_*.npy"))
 
 nParticles = 0
