@@ -3,6 +3,12 @@ import numpy as np
 
 ################################################################################################### Define Edge Network
 class EdgeNet(tf.keras.layers.Layer):
+    """
+    A module which computes weights for edges of the graph.
+    For each edge, it selects the associated nodes' features
+    and applies some fully-connected network layers with a final
+    sigmoid activation.
+    """
     def __init__(self, name="EdgeNet", hid_dim=10):
         super(EdgeNet, self).__init__(name=name)
 
@@ -29,6 +35,13 @@ class EdgeNet(tf.keras.layers.Layer):
 
 # Define Node Network
 class NodeNet(tf.keras.layers.Layer):
+    """
+    A module which computes new node features on the graph.
+    For each node, it aggregates the neighbor node features
+    (separately on the input and output side), and combines
+    them with the node's previous features in a fully-connected
+    network to compute the new features.
+    """
     def __init__(self, name="NodeNet", hid_dim=10):
         super(NodeNet, self).__init__(name=name)
 
@@ -59,6 +72,10 @@ class NodeNet(tf.keras.layers.Layer):
 
 ##################################################################################################
 class GNN(tf.keras.Model):
+    """
+    A message-passing graph neural network model which performs
+    binary classification of nodes.
+    """
     def __init__(self):
         # Network definitions here
         super(GNN, self).__init__(name="GNN")
