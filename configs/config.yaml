@@ -3,7 +3,7 @@ valid_dir : '/nfs/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/datasets
 dataset : 'LUXE-TRACKING-FBX-7.0'
 log_dir : '/nfs/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/GNN_training/'
 run_type : 'new_run'
-gpu : '0'
+gpu : '-1'
 n_files : 100
 n_valid : 10
 n_train : 90
@@ -16,5 +16,5 @@ hid_dim : 128
 network : 'CNN'
 optimizer : 'Adam'
 loss_func : 'BinaryCrossentropy'
-n_thread : 4
+n_thread : 12
 log_verbosity : 1
