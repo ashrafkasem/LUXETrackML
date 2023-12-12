@@ -32,6 +32,8 @@ if __name__=='__main__':
     parser.add_argument('--infile', help='if you dont run batch system you provide a single file', metavar='infile', default="")
     parser.add_argument('--batch', help="activate batch system submission",  action='store_true')
     parser.add_argument('--nevents', help='the number of events per batch job', type=int, default=-1)
+    parser.add_argument('--splits', help='if you want to split the single events into smaller particle BXs', type=int, default=1)
+    parser.add_argument('--bstra', help="if you want to bootstrap while sampling",  action='store_true')
     parser.add_argument('--evtnum', help='event number per batch job', type=int, default=-1)
 
 
@@ -44,52 +46,57 @@ if __name__=='__main__':
             os.makedirs(output_dir)
         # read file
         events = pd.read_csv(args.infile)
-        """
-        The follwoing 3-lines are uncomented only in case of testing
-        """
-        """events = events[events['event'] == 2263]
+        
         p_ids = events["particle_id"].unique()
-        index = np.random.choice(p_ids.shape[0], int(p_ids.shape[0]/100), replace=False)  
-        selected_particles = p_ids[index]
-        events = events[events["particle_id"].isin(selected_particles)]"""
-        # print(selected_particles)
-        # print(events.shape)
+        split_size = int(p_ids.shape[0]/args.splits)
+        
+        for snum, split in range(args.splits):
+            # events = events[events['event'] == 2263]
+            # p_ids = p_ids
+            if args.bstra: 
+                index = np.random.choice(p_ids.shape[0], int(p_ids.shape[0]/100), replace=False)  
+                selected_particles = p_ids[index]
+            else: 
+                selected_particles = p_ids[snum*split_size:(snum+1) * split_size]
+            events = events[events["particle_id"].isin(selected_particles)]
+            # print(selected_particles)
+            # print(events.shape)
 
-        # give and event ID to each event
-        events_list = np.unique(events['event'])
-        
-        if nevents_per_job > len(events_list):
-            print(f"the file you provided has only {len(events_list)} events and you wanted to run over {nevents_per_job}")
-            nevents_per_job = len(events_list)
-        
-        if args.evtnum >= 0 and nevents_per_job == 1:
-            events = events[events['event']==args.evtnum]
-        
-        events_list = np.unique(events['event'])
-        for evt in events_list:
-            # get stats and cut lists
-            cut_list = get_cut_list(events[events["event"] == evt])
-            # apply cuts/selections and obtain graphs
-            segments, graph = construct_segments(events[events["event"] == evt], cut_list, getGraphandSegments=True)
-        
-            # save the graph file
-            # print(graph.X)
-            # print(graph.Ri.shape)
-            # print(graph.Ro.shape)
-            # print(graph.y.shape)
-            save_graph(graph, f"{output_dir}/graph_{evt}")
+            # give and event ID to each event
+            events_list = np.unique(events['event'])
             
-            # save the segments file
-            segments.to_csv(f"{output_dir}/segments_{evt}.csv")
+            if nevents_per_job > len(events_list):
+                print(f"the file you provided has only {len(events_list)} events and you wanted to run over {nevents_per_job}")
+                nevents_per_job = len(events_list)
+            
+            if args.evtnum >= 0 and nevents_per_job == 1:
+                events = events[events['event']==args.evtnum]
+            
+            events_list = np.unique(events['event'])
+            for evt in events_list:
+                # get stats and cut lists
+                cut_list = get_cut_list(events[events["event"] == evt])
+                # apply cuts/selections and obtain graphs
+                segments, graph = construct_segments(events[events["event"] == evt], cut_list, getGraphandSegments=True)
+            
+                # save the graph file
+                # print(graph.X)
+                # print(graph.Ri.shape)
+                # print(graph.Ro.shape)
+                # print(graph.y.shape)
+                save_graph(graph, f"{output_dir}/graph_{evt}_split_{snum}")
+                
+                # save the segments file
+                segments.to_csv(f"{output_dir}/segments_{evt}_split_{snum}.csv")
 
-            # Calculate statistics to later calculate the weights to be used in GNN
-            nParticles = events[events["event"] == evt]['particle_id'].nunique()
-            _,_,_,y = graph
-            true_count = np.sum(y)
-            fake_count = len(y) - np.sum(y)
-            true_generated_count = segments['label'].sum()
-            stats = [nParticles, true_count, fake_count, true_generated_count]
-            np.save(f"{output_dir}/stats_{evt}.npy", np.array(stats))
+                # Calculate statistics to later calculate the weights to be used in GNN
+                nParticles = events[events["event"] == evt]['particle_id'].nunique()
+                _,_,_,y = graph
+                true_count = np.sum(y)
+                fake_count = len(y) - np.sum(y)
+                true_generated_count = segments['label'].sum()
+                stats = [nParticles, true_count, fake_count, true_generated_count]
+                np.save(f"{output_dir}/stats_{evt}_split_{snum}.npy", np.array(stats))
     
     else: 
         pass
