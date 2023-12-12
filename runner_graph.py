@@ -38,6 +38,7 @@ if __name__=='__main__':
 
 
     args = parser.parse_args()
+    print(vars(args))
     nevents_per_job = args.nevents
 
     if not args.batch:
