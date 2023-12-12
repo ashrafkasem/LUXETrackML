@@ -70,7 +70,9 @@ if __name__=='__main__':
                 index = np.random.choice(p_ids.shape[0], split_size, replace=False)  
                 selected_particles = p_ids[index]
             else: 
+                print(f"making graph for the split {snum} which is choosing indexs from {snum*split_size} to {(snum+1) * split_size}")
                 selected_particles = p_ids[snum*split_size:(snum+1) * split_size]
+            print(f"number of particles to construct the tracks are {selected_particles.shape}")
             events = events[events["particle_id"].isin(selected_particles)]
             # print(selected_particles)
             # print(events.shape)
