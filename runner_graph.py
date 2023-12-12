@@ -143,8 +143,10 @@ if __name__=='__main__':
                 exec_.write("echo 'running job' >> "+confDir+"/processing"+"\n")
 
                 exec_.write("echo "+confDir+"\n")
-                
-                exec_.write(f"python {os.getcwd()}/runner_graph.py --data_dir ./ --output_dir {os.path.abspath(confDir)} --infile {os.path.abspath(file_)}  --nevents 1 --evtnum {evt} >> {confDir}/output.log")
+                if args.bstra:
+                    exec_.write(f"python {os.getcwd()}/runner_graph.py --data_dir ./ --output_dir {os.path.abspath(confDir)} --infile {os.path.abspath(file_)}  --nevents 1 --evtnum {evt} --splits {args.splits} --bstra ")#>> {confDir}/output.log")
+                else: 
+                    exec_.write(f"python {os.getcwd()}/runner_graph.py --data_dir ./ --output_dir {os.path.abspath(confDir)} --infile {os.path.abspath(file_)}  --nevents 1 --evtnum {evt} --splits {args.splits} ")#>> {confDir}/output.log")
                 exec_.write("\n")
                 
                 # let the script deletes itself after finishing the job
