@@ -78,10 +78,10 @@ if __name__=='__main__':
                     print(f"making graph for the split {snum} which is choosing indexs from {snum*split_size} to {(snum+1) * split_size}")
                     selected_particles = p_ids[snum*split_size:(snum+1) * split_size]
                 print(f"number of particles to construct the tracks are {selected_particles.shape}")
-                event = event[event["particle_id"].isin(selected_particles)]
+                split_event = event[event["particle_id"].isin(selected_particles)]
 
                 # apply cuts/selections and obtain graphs
-                segments, graph = construct_segments(event, cut_list, getGraphandSegments=True)
+                segments, graph = construct_segments(split_event, cut_list, getGraphandSegments=True)
             
                 # save the graph file
                 # print(graph.X)
@@ -93,13 +93,15 @@ if __name__=='__main__':
                 segments.to_csv(f"{output_dir}/segments_{evt}_split_{snum}.csv")
 
                 # Calculate statistics to later calculate the weights to be used in GNN
-                nParticles = event['particle_id'].nunique()
+                nParticles = split_event['particle_id'].nunique()
                 _,_,_,y = graph
                 true_count = np.sum(y)
                 fake_count = len(y) - np.sum(y)
                 true_generated_count = segments['label'].sum()
                 stats = [nParticles, true_count, fake_count, true_generated_count]
                 np.save(f"{output_dir}/stats_{evt}_split_{snum}.npy", np.array(stats))
+                del split_event
+            del event
     else: 
         pass
         list_of_files = sorted(glob.glob(f"{args.data_dir}/truth_*.csv"))
