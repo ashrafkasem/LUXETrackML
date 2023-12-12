@@ -47,14 +47,27 @@ if __name__=='__main__':
         # read file
         events = pd.read_csv(args.infile)
         
+        # give and event ID to each event
+        events_list = np.unique(events['event'])
+        
+        if nevents_per_job > len(events_list):
+            print(f"the file you provided has only {len(events_list)} events and you wanted to run over {nevents_per_job}")
+            nevents_per_job = len(events_list)
+        
+        if args.evtnum >= 0 and nevents_per_job == 1:
+            events = events[events['event']==args.evtnum]
+        
+        events_list = np.unique(events['event'])
+
+
         p_ids = events["particle_id"].unique()
         split_size = int(p_ids.shape[0]/args.splits)
-        
-        for snum, split in range(args.splits):
+
+        for snum, split in enumerate(range(args.splits)):
             # events = events[events['event'] == 2263]
             # p_ids = p_ids
             if args.bstra: 
-                index = np.random.choice(p_ids.shape[0], int(p_ids.shape[0]/100), replace=False)  
+                index = np.random.choice(p_ids.shape[0], split_size, replace=False)  
                 selected_particles = p_ids[index]
             else: 
                 selected_particles = p_ids[snum*split_size:(snum+1) * split_size]
@@ -62,17 +75,6 @@ if __name__=='__main__':
             # print(selected_particles)
             # print(events.shape)
 
-            # give and event ID to each event
-            events_list = np.unique(events['event'])
-            
-            if nevents_per_job > len(events_list):
-                print(f"the file you provided has only {len(events_list)} events and you wanted to run over {nevents_per_job}")
-                nevents_per_job = len(events_list)
-            
-            if args.evtnum >= 0 and nevents_per_job == 1:
-                events = events[events['event']==args.evtnum]
-            
-            events_list = np.unique(events['event'])
             for evt in events_list:
                 # get stats and cut lists
                 cut_list = get_cut_list(events[events["event"] == evt])
