@@ -58,30 +58,30 @@ if __name__=='__main__':
             events = events[events['event']==args.evtnum]
         
         events_list = np.unique(events['event'])
+    
+        # print(selected_particles)
+        # print(events.shape)
 
+        for evt in events_list:
+            event = events[events["event"] == evt]
+            cut_list = get_cut_list(event)
+            p_ids = event["particle_id"].unique()
+            split_size = int(p_ids.shape[0]/args.splits)
+            # get stats and cut lists
+            for snum, split in enumerate(range(args.splits)):
+                # events = events[events['event'] == 2263]
+                # p_ids = p_ids
+                if args.bstra: 
+                    index = np.random.choice(p_ids.shape[0], split_size, replace=False)  
+                    selected_particles = p_ids[index]
+                else: 
+                    print(f"making graph for the split {snum} which is choosing indexs from {snum*split_size} to {(snum+1) * split_size}")
+                    selected_particles = p_ids[snum*split_size:(snum+1) * split_size]
+                print(f"number of particles to construct the tracks are {selected_particles.shape}")
+                event = event[event["particle_id"].isin(selected_particles)]
 
-        p_ids = events["particle_id"].unique()
-        split_size = int(p_ids.shape[0]/args.splits)
-
-        for snum, split in enumerate(range(args.splits)):
-            # events = events[events['event'] == 2263]
-            # p_ids = p_ids
-            if args.bstra: 
-                index = np.random.choice(p_ids.shape[0], split_size, replace=False)  
-                selected_particles = p_ids[index]
-            else: 
-                print(f"making graph for the split {snum} which is choosing indexs from {snum*split_size} to {(snum+1) * split_size}")
-                selected_particles = p_ids[snum*split_size:(snum+1) * split_size]
-            print(f"number of particles to construct the tracks are {selected_particles.shape}")
-            events = events[events["particle_id"].isin(selected_particles)]
-            # print(selected_particles)
-            # print(events.shape)
-
-            for evt in events_list:
-                # get stats and cut lists
-                cut_list = get_cut_list(events[events["event"] == evt])
                 # apply cuts/selections and obtain graphs
-                segments, graph = construct_segments(events[events["event"] == evt], cut_list, getGraphandSegments=True)
+                segments, graph = construct_segments(event, cut_list, getGraphandSegments=True)
             
                 # save the graph file
                 # print(graph.X)
@@ -89,19 +89,17 @@ if __name__=='__main__':
                 # print(graph.Ro.shape)
                 # print(graph.y.shape)
                 save_graph(graph, f"{output_dir}/graph_{evt}_split_{snum}")
-                
                 # save the segments file
                 segments.to_csv(f"{output_dir}/segments_{evt}_split_{snum}.csv")
 
                 # Calculate statistics to later calculate the weights to be used in GNN
-                nParticles = events[events["event"] == evt]['particle_id'].nunique()
+                nParticles = event['particle_id'].nunique()
                 _,_,_,y = graph
                 true_count = np.sum(y)
                 fake_count = len(y) - np.sum(y)
                 true_generated_count = segments['label'].sum()
                 stats = [nParticles, true_count, fake_count, true_generated_count]
                 np.save(f"{output_dir}/stats_{evt}_split_{snum}.npy", np.array(stats))
-    
     else: 
         pass
         list_of_files = sorted(glob.glob(f"{args.data_dir}/truth_*.csv"))
