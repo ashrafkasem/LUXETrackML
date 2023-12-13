@@ -184,7 +184,8 @@ def true_fake_weights(labels):
     '''
     [weight of fake edges, weight of true edges]
     '''
-    weight_list=[0.5091900103954181, 27.703451274075235]
+    weight_list = [0.5091900103954181, 27.703451274075235]
+    weight_list = [0.6838555406023465, 1.8597632096424799]
     return [weight_list[int(labels[i])] for i in range(labels.shape[0])]
 
 def load_params(model, log_path):
