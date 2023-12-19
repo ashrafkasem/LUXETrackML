@@ -63,7 +63,7 @@ class plotterABC:
             
             for formate in self.formates:
                 if formate == "png":
-                    plt.savefig(f"f"{self.output_dir}/{formate}"/{metric}.{formate}", dpi=600)
+                    plt.savefig(f"{self.output_dir}/{formate}/{metric}.{formate}", dpi=600)
                 else:
-                    plt.savefig(f"f"{self.output_dir}/{formate}"/{metric}.{formate}")
+                    plt.savefig(f"{self.output_dir}/{formate}/{metric}.{formate}")
             plt.close()
