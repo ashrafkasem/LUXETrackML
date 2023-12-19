@@ -16,3 +16,9 @@ venv/*
 */*.DS_Store
 */*/*.DS_Store
 */*//*/*.DS_Store
+.ipynb_checkpoints
+.ipynb_checkpoints/*
+.empty
+.empty/*
+GNN_training*
+gnn-plots
