@@ -4,9 +4,9 @@ if __name__ == "__main__":
     plotter = plotterABC(
         logs_dir="GNN_training_sampling/",
         output_dir="outputplotter",
-        runs=[0, 1],  # ,2,3],
+        runs=[2,3],#[0,1,2,3],
         formates=["png"],
-        dataTypes=["training", "validation"],
+        dataTypes=["validation"],#["training"],#, "validation"],
         metrics=[
             "auc",
             "loss",
@@ -22,8 +22,8 @@ if __name__ == "__main__":
             "recall_7",
             "f1_7",
         ],
-        logY={"auc": True, "loss": True},
-        Axis_limits={"auc": [1e-6, 1], "loss": [0.2, 1]},
+        # logY={"auc": True, "loss": True},
+        # Axis_limits={"auc": [1e-6, 1], "loss": [0.2, 1]},
     )
 
     plotter.makePlots()
