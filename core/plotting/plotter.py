@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 import os
-
+from core.utiles import summary_statistics_across_dict_keys
 
 class plotterABC:
     def __init__(
@@ -94,4 +94,58 @@ class plotterABC:
                     )
                 else:
                     plt.savefig(f"{self.output_dir}/{formate}/{metric}.{formate}")
+            plt.close()
+
+    def makeAvgPlots(self):
+        metric_dict = {}
+        for metric in self.metrics:
+            plt.clf()
+            plt.figure()
+            metric_dict[metric] = {}
+            for dataType in self.dataTypes:
+                metric_dict[metric][dataType] = {}
+                xidx = np.array([])
+                for run in self.runs:
+                    metric_dict[metric][dataType][run] = (
+                        self.log_dfs[dataType][run][metric]
+                        if metric != "auc"
+                        else 1 - self.log_dfs[dataType][run][metric]
+                    )
+                    if xidx.shape[0] < len(metric_dict[metric][dataType][run].index): 
+                        xidx = metric_dict[metric][dataType][run].index.to_numpy()
+
+                summary = summary_statistics_across_dict_keys(metric_dict[metric][dataType])
+                plt.plot(summary['mean'], label= f"{len(self.runs)} Avarage {dataType}")
+                plt.fill_between(
+                    xidx,
+                    summary['min'],
+                    summary['max'],
+                    alpha=0.2
+                )
+
+            plt.title(f"data:{self.dataset} - GNN")
+            plt.xlabel("epochs")
+            if metric == "auc":
+                ylabel = "1-AUC (lower the better)"
+            elif metric == "loss":
+                ylabel = "Loss (lower the better)"
+            else:
+                ylabel = metric
+
+            plt.ylabel(ylabel)
+
+            if metric in self.logY and self.logY[metric] == True:
+                plt.yscale("log")
+            if metric in self.Axis_limits:
+                plt.ylim(self.Axis_limits[metric])
+
+            plt.legend()
+
+            for formate in self.formates:
+                if formate == "png":
+                    plt.savefig(
+                        f"{self.output_dir}/{formate}/avg_{metric}.{formate}", dpi=600
+                    )
+                else:
+                    plt.savefig(f"{self.output_dir}/avg_{formate}/{metric}.{formate}")
             plt.close()
