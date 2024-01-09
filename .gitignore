@@ -25,3 +25,5 @@ gnn-plots
 outputplotter
 outputplotter/*
 core/plotting/__pycache__/plotter.cpython-311.pyc
+test_dataset/*
+test_dataset

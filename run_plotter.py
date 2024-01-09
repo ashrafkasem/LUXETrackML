@@ -2,11 +2,11 @@ from core.plotting.plotter import plotterABC
 
 if __name__ == "__main__":
     plotter = plotterABC(
-        logs_dir="/home/amohamed/dust/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling/",
+        logs_dir="/Users/amohamed/dust/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling/",
         output_dir="outputplotter",
         runs=[0,1,2,3,4],
         formates=["png"],
-        dataTypes=["validation"],#["training"],#, "validation"],
+        dataTypes=["training"],#["training"],#, "validation"],
         metrics=[
             "auc",
             "loss",
@@ -26,4 +26,5 @@ if __name__ == "__main__":
         # Axis_limits={"auc": [1e-6, 1], "loss": [0.2, 1]},
     )
 
+    plotter.makePlots()
     plotter.makeAvgPlots()
