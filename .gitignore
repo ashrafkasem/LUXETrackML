@@ -22,7 +22,7 @@ venv/*
 .empty/*
 GNN_training*
 gnn-plots
-outputplotter
+outputplotter*
 outputplotter/*
 core/plotting/__pycache__/plotter.cpython-311.pyc
 test_dataset/*

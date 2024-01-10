@@ -14,7 +14,7 @@ n_epoch : 100
 TEST_every : 90
 hid_dim : 128
 network : 'CNN'
-optimizer : 'Adam'
+optimizer : 'SGD'
 loss_func : 'BinaryCrossentropy'
 n_thread : 48
 log_verbosity : 1

@@ -4,7 +4,7 @@ if __name__ == "__main__":
     plotter = plotterABC(
         logs_dir="/Users/amohamed/dust/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling/",
         output_dir="outputplotter",
-        runs=[0,1,2,3,4],
+        runs=[4],
         formates=["png"],
         dataTypes=["training"],#["training"],#, "validation"],
         metrics=[
