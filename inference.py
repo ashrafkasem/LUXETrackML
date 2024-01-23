@@ -46,17 +46,40 @@ if __name__ == '__main__':
 
     # setup model
     model = GNN()
-
+    print(
+            str(datetime.datetime.now()), f"start loading {config['n_inference']} graphs from {config['inference_dir']}"
+            )
     # load data
     datasets = get_dataset(config['inference_dir'], config['n_inference'])
-
-    config['best_run'], _ = get_best_run(config['run_dir'])
+    print(
+            str(datetime.datetime.now()), f"{config['n_inference']} graphs from {config['inference_dir']} are loaded"
+            )
+    config['best_run'], config['best_cutoff'] = get_best_run(config['run_dir'])
+    print(
+            str(datetime.datetime.now()), f"run{config['best_run']} is taken as best run as its best cutoff is {config['best_cutoff']}"
+            )
     config['run_dir'] = f"{config['run_dir']}/run{config['best_run']}/"
+
+    print(
+            str(datetime.datetime.now()), f"model parameters will be loaded from {config['run_dir']}"
+            )
+
     model, _ = load_params(model, config['run_dir'])
+
+    print(
+            str(datetime.datetime.now()), f"model parameters are loaded from {config['run_dir']}"
+            )
     print(model.summary())
 
     for i, data in enumerate(datasets): 
+        print(
+            str(datetime.datetime.now()), f"inference for {datasets.filenames[i]} is ongoing"
+            )
         X, Ri, Ro, y = data
         pred = model([X, Ri, Ro])
+        
         file_name = f"preds_{datasets.filenames[i].split('/')[-1].replace('.npz','.npy')}"
+        print(
+            str(datetime.datetime.now()), f"inference for {datasets.filenames[i]} is done and the output {file_name} is going to be written"
+            )
         np.save(f"{config['output_dir']}/{file_name}", pred.numpy())
