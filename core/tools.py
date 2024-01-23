@@ -48,6 +48,12 @@ def parse_args():
     add_arg('config')
     add_arg('RID')
     return parser.parse_args()
+
+def load_config_infer(args):
+    with open(args.config, 'r') as ymlfile:
+        config = yaml.load(ymlfile, Loader=yaml.FullLoader)
+    return config
+
 def load_config(args):
     # read the config file 
     with open(args.config, 'r') as ymlfile:
