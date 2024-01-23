@@ -69,7 +69,7 @@ if __name__ == '__main__':
     print(
             str(datetime.datetime.now()), f"model parameters are loaded from {config['run_dir']}"
             )
-    print(model.summary())
+    
 
     for i, data in enumerate(datasets): 
         print(
@@ -77,7 +77,8 @@ if __name__ == '__main__':
             )
         X, Ri, Ro, y = data
         pred = model([X, Ri, Ro])
-        
+        if i == 0: 
+            print(model.summary())
         file_name = f"preds_{datasets.filenames[i].split('/')[-1].replace('.npz','.npy')}"
         print(
             str(datetime.datetime.now()), f"inference for {datasets.filenames[i]} is done and the output {file_name} is going to be written"
