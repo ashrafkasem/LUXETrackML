@@ -156,3 +156,4 @@ if __name__ == '__main__':
                 test(config, model, 'train')
 
     print(str(datetime.datetime.now()) + ': Training completed!')
+    model.save(config['log_dir']+"/tfmodel", save_format='tf') 
