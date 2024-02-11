@@ -27,3 +27,5 @@ outputplotter/*
 core/plotting/__pycache__/plotter.cpython-311.pyc
 test_dataset/*
 test_dataset
+models
+test*

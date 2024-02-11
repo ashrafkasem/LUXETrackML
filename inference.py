@@ -1,36 +1,19 @@
+import matplotlib
+matplotlib.use('agg')  # Use the 'agg' backend
 import os
 # Turn off warnings and errors due to TF libraries
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  
 import tensorflow as tf
 from core.tools import *
 import pandas as pd
-
-def get_best_run(log_dir):
-    nRuns = 5
-    best_run = 0
-    best_cutoff = 0.5
-    auc_list = np.zeros(nRuns)
-    # choose the best run based on final training stats
-    for i in range(10):
-        try:
-            log = pd.read_csv(log_dir+'run%d/log_training.csv'%i)
-            auc_list[i] = log['auc'].to_numpy()[-1]
-        except:
-            pass
-    best_run = np.argmax(auc_list)
-    # choose the best cutoff from the best run
-    best_log = pd.read_csv(log_dir+'run%d/log_training.csv'%best_run)
-    cutoff_list = [0.3,0.5,0.7]
-    f1_cutoff = [best_log['f1_3'].to_numpy()[-1], best_log['f1_5'].to_numpy()[-1], best_log['f1_7'].to_numpy()[-1]]
-    best_cutoff = cutoff_list[np.argmax(f1_cutoff)]
-    print('Using run %d with cutoff %.1f'%(best_run, best_cutoff))
-    return best_run, best_cutoff
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 if __name__ == '__main__':
     # Read config file
     config = load_config_infer(parse_args())
     # tools.config = config
-
     # Set GPU variables
     os.environ["CUDA_VISIBLE_DEVICES"] = config['gpu']
     USE_GPU = (config['gpu']  != '-1')
@@ -43,44 +26,73 @@ if __name__ == '__main__':
     # Load the network
     from core.policies.gnn_policy import GNN
     GNN.config = config
+    
+    os.makedirs(config["output_dir"], exist_ok=True)
 
     # setup model
     model = GNN()
-    print(
-            str(datetime.datetime.now()), f"start loading {config['n_inference']} graphs from {config['inference_dir']}"
+    model_dir = os.path.join(f"{config['run_dir']}/run{config['run_number']}", "tfmodel")
+    try: 
+        loaded_model = tf.keras.models.load_model(model_dir)
+        for idx, params in enumerate(loaded_model.trainable_variables):
+            model.trainable_variables[idx].assign(params)
+        print(
+            str(datetime.datetime.now()), f"Model is loaded from {model_dir}"
             )
-    # load data
+    except Exception as e:
+        print(
+            str(datetime.datetime.now()), f"could not load model from {model_dir}"
+            )
+        raise e
+
     datasets = get_dataset(config['inference_dir'], config['n_inference'])
-    print(
-            str(datetime.datetime.now()), f"{config['n_inference']} graphs from {config['inference_dir']} are loaded"
-            )
-    config['best_run'], config['best_cutoff'] = get_best_run(config['run_dir'])
-    print(
-            str(datetime.datetime.now()), f"run{config['best_run']} is taken as best run as its best cutoff is {config['best_cutoff']}"
-            )
-    config['run_dir'] = f"{config['run_dir']}/run{config['best_run']}/"
 
-    print(
-            str(datetime.datetime.now()), f"model parameters will be loaded from {config['run_dir']}"
-            )
+    # Initialize lists to store true labels and predictions
+    all_y_true = []
+    all_y_pred = []
 
-    model, _ = load_params(model, config['run_dir'])
-
-    print(
-            str(datetime.datetime.now()), f"model parameters are loaded from {config['run_dir']}"
-            )
+    # Iterate over each dataset in test_data
+    for dataset in datasets:
+        X, Ri, Ro, y = dataset
+        # Get predictions from the model
+        y_ = model([X, Ri, Ro])
+        pred = y_.numpy()
+        # Convert predictions to binary (0 or 1)
+        pred[pred < 0.5] = 0
+        pred[pred >= 0.5] = 1
+        pred = pred.flatten()
+        
+        # Append true labels and predictions to the lists
+        all_y_true.extend(y)
+        all_y_pred.extend(pred)
     
+    # Convert lists to NumPy arrays
+    all_y_true = np.array(all_y_true)
+    all_y_pred = np.array(all_y_pred)
+    
+    # Compute evaluation metrics
+    accuracy = accuracy_score(all_y_true, all_y_pred)
+    precision = precision_score(all_y_true, all_y_pred)
+    recall = recall_score(all_y_true, all_y_pred)
+    f1 = f1_score(all_y_true, all_y_pred)
+    
+    # Compute confusion matrix
+    cm = confusion_matrix(all_y_true, all_y_pred)
+    
+    
+    # Open a file in write mode
+    with open(f"{config['output_dir']}/evaluation_metrics.txt", "w") as file:
+        # Write evaluation metrics into the file using f-strings
+        file.write(f"Accuracy: {accuracy}\n")
+        file.write(f"Precision: {precision}\n")
+        file.write(f"Recall: {recall}\n")
+        file.write(f"F1 Score: {f1}\n")
 
-    for i, data in enumerate(datasets): 
-        print(
-            str(datetime.datetime.now()), f"inference for {datasets.filenames[i]} is ongoing"
-            )
-        X, Ri, Ro, y = data
-        pred = model([X, Ri, Ro])
-        if i == 0: 
-            print(model.summary())
-        file_name = f"preds_{datasets.filenames[i].split('/')[-1].replace('.npz','.npy')}"
-        print(
-            str(datetime.datetime.now()), f"inference for {datasets.filenames[i]} is done and the output {file_name} is going to be written"
-            )
-        np.save(f"{config['output_dir']}/{file_name}", pred.numpy())
+    # Plot confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Class 0', 'Class 1'], yticklabels=['Class 0', 'Class 1'])
+    plt.xlabel('Predicted label')
+    plt.ylabel('True label')
+    plt.title('Confusion Matrix')
+    plt.savefig(f"{config['output_dir']}/CM.png")
+    # plt.show()

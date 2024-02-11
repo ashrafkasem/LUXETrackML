@@ -1,0 +1,8 @@
+inference_dir : '/Users/amohamed/ML/LUXETrackML/test_dataset/'
+n_inference : 10
+run_dir: '/Users/amohamed/ML/LUXETrackML/models/'
+output_dir: '/Users/amohamed/ML/LUXETrackML/test_output_inference/'
+gpu : '0'
+n_thread : 48
+hid_dim : 128
+n_iters : 4
