@@ -35,6 +35,7 @@ if __name__=='__main__':
     parser.add_argument('--splits', help='if you want to split the single events into smaller particle BXs', type=int, default=1)
     parser.add_argument('--bstra', help="if you want to bootstrap while sampling",  action='store_true')
     parser.add_argument('--evtnum', help='event number per batch job', type=int, default=-1)
+    parser.add_argument('--joblimit', help='event number per batch job', type=int, default=-1)
 
 
     args = parser.parse_args()
@@ -155,7 +156,9 @@ if __name__=='__main__':
                 exec_.write("echo 'done job' >> "+confDir+"/done"+"\n")              
                 exec_.close()
                 job_counter+=1
-
+                if (args.joblimit > 0) and job_counter >=  args.joblimit: 
+                    print(f'you limitted the nubmer of allowed jobs to {args.joblimit} by passing --joblimit and now you reached that limit, the rest of jobs will be escaped')
+                    break
         subFilename = os.path.join(outdir,"submitAllJobs.conf")
         subFile = open(subFilename,"w+")
         subFile.write("executable = $(DIR)/exec.sh"+"\n")
