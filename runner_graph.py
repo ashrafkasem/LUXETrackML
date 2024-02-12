@@ -67,7 +67,7 @@ if __name__=='__main__':
             event = events[events["event"] == evt]
             cut_list = get_cut_list(event)
             p_ids = event["particle_id"].unique()
-            split_size = int(p_ids.shape[0]/args.splits)
+            split_size = int(p_ids.shape[0]*args.splits/100.0)
             # get stats and cut lists
             for snum, split in enumerate(range(args.splits)):
                 # events = events[events['event'] == 2263]
