@@ -156,8 +156,8 @@ if __name__=='__main__':
                 exec_.write("echo 'done job' >> "+confDir+"/done"+"\n")              
                 exec_.close()
                 job_counter+=1
-                if (args.joblimit > 0) and job_counter >=  args.joblimit: 
-                    print(f'you limitted the nubmer of allowed jobs to {args.joblimit} by passing --joblimit and now you reached that limit, the rest of jobs will be escaped')
+                if (args.joblimit > 0) and (job_counter >= args.joblimit):
+                    print(f' number of jobs becomes {job_counter} and you limitted the nubmer of allowed jobs to {args.joblimit} by passing --joblimit and now you reached that limit, the rest of jobs will be escaped')
                     break
         subFilename = os.path.join(outdir,"submitAllJobs.conf")
         subFile = open(subFilename,"w+")
