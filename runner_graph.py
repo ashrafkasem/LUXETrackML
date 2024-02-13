@@ -92,7 +92,7 @@ if __name__=='__main__':
                 # print(graph.y.shape)
                 save_graph(graph, f"{output_dir}/graph_{evt}_split_{snum}")
                 # save the segments file
-                segments.to_csv(f"{output_dir}/segments_{evt}_split_{snum}.csv")
+                #segments.to_csv(f"{output_dir}/segments_{evt}_split_{snum}.csv")
 
                 # Calculate statistics to later calculate the weights to be used in GNN
                 nParticles = split_event['particle_id'].nunique()
