@@ -4,7 +4,7 @@ import sys
 
 xi=7.0
 data_dir = sys.argv[1]#'./output'
-file_lists = sorted(glob.glob(f"{data_dir}/job_*/stats_*.npy"))
+file_lists = sorted(glob.glob(f"{data_dir}/stats_*.npy"))
 
 nParticles = 0
 true_count = 0

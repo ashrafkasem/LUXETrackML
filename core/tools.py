@@ -187,12 +187,22 @@ def find_layer(arr):
             raise ValueError()
     return layers
 
-def true_fake_weights(labels):
+def true_fake_weights(labels, dataset):
     '''
     [weight of fake edges, weight of true edges]
     '''
-    weight_list = [0.5091900103954181, 27.703451274075235]
-    weight_list = [0.6838555406023465, 1.8597632096424799]
+    if dataset == 'LUXE-TRACKING-5Perc':
+        weight_list = [0.6838555406023465, 1.8597632096424799]
+    elif dataset == 'LUXE-TRACKING-10Perc':
+        weight_list = [0.5919166663106451, 3.2198549516046455]
+    elif dataset == 'LUXE-TRACKING-20Perc':
+        weight_list = [0.5459500700737486, 5.940688112091169]
+    elif dataset == 'LUXE-TRACKING-30Perc':
+        weight_list = [0.530632433113803, 8.66128444878085]
+    elif dataset == 'LUXE-TRACKING-40Perc':
+        weight_list = [0.5229721269815637, 11.382753704114448]
+    else:
+        raise ValueError('dataset not defined')
     return [weight_list[int(labels[i])] for i in range(labels.shape[0])]
 
 def load_params(model, log_path):

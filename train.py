@@ -23,14 +23,14 @@ def batch_train_step(n_step):
             
             if batch==0:
                 # calculate weight for each edge to avoid class imbalance
-                weights = tf.convert_to_tensor(true_fake_weights(y))
+                weights = tf.convert_to_tensor(true_fake_weights(y, config['dataset']))
                 # reshape weights
                 weights = tf.reshape(tf.convert_to_tensor(weights),
                                      shape=(weights.shape[0],1))
                 preds = model([X,Ri,Ro])
                 labels = label
             else:
-                weight = tf.convert_to_tensor(true_fake_weights(y))
+                weight = tf.convert_to_tensor(true_fake_weights(y, config['dataset']))
                 # reshape weights
                 weight = tf.reshape(tf.convert_to_tensor(weight),
                                     shape=(weight.shape[0],1))
