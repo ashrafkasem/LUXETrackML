@@ -69,8 +69,9 @@ if __name__=='__main__':
             cut_list = get_cut_list(event)
             p_ids = event["particle_id"].unique()
             split_size = int(p_ids.shape[0]*args.splits/100.0)
+            steps = p_ids.shape[0] * split_size
             # get stats and cut lists
-            for snum, split in enumerate(range(args.splits)):
+            for snum, split in enumerate(range(steps)):
                 # events = events[events['event'] == 2263]
                 # p_ids = p_ids
                 if args.bstra: 
@@ -78,7 +79,7 @@ if __name__=='__main__':
                     selected_particles = p_ids[index]
                 else: 
                     print(f"making graph for the split {snum} which is choosing indexs from {snum*split_size} to {(snum+1) * split_size}")
-                    selected_particles = p_ids[snum*split_size:(snum+1) * split_size]
+                    selected_particles = p_ids[snum*split_size:min((snum+1) * split_size, p_ids.shape[0])]
                 print(f"number of particles to construct the tracks are {selected_particles.shape}")
                 split_event = event[event["particle_id"].isin(selected_particles)]
 
