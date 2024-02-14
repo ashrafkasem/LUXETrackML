@@ -1,8 +1,9 @@
 import numpy as np
 import glob
+import sys
 
 xi=7.0
-data_dir = './output'
+data_dir = sys.argv[1]#'./output'
 file_lists = sorted(glob.glob(f"{data_dir}/job_*/stats_*.npy"))
 
 nParticles = 0
