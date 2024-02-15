@@ -78,7 +78,8 @@ if __name__ == '__main__':
     
     # Compute confusion matrix
     cm = confusion_matrix(all_y_true, all_y_pred)
-    
+    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
     
     # Open a file in write mode
     with open(f"{config['output_dir']}/evaluation_metrics.txt", "w") as file:
@@ -90,9 +91,18 @@ if __name__ == '__main__':
 
     # Plot confusion matrix
     plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Class 0', 'Class 1'], yticklabels=['Class 0', 'Class 1'])
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', )
     plt.xlabel('Predicted label')
     plt.ylabel('True label')
     plt.title('Confusion Matrix')
     plt.savefig(f"{config['output_dir']}/CM.png")
+    # plt.show()
+
+    # Plot normalized confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm_normalized, annot=True, cmap='Blues', fmt='.2%',xticklabels=['Class 0', 'Class 1'], yticklabels=['Class 0', 'Class 1'])
+    plt.title('Normalized Confusion Matrix')
+    plt.xlabel('Predicted label')
+    plt.ylabel('True label')
+    plt.savefig(f"{config['output_dir']}/normalizedCM.png")
     # plt.show()
