@@ -9,7 +9,7 @@ from random import shuffle
 import tensorflow as tf
 # import internal scripts
 from core.tools import *
-from core.test import test
+from core.test import calculate_metrics, validate
 ###############################################################################
 def batch_train_step(n_step):
     '''combines multiple  graph inputs and executes a step on their mean'''
@@ -43,8 +43,16 @@ def batch_train_step(n_step):
 
     grads = tape.gradient(loss_eval, model.trainable_variables)
     opt.apply_gradients(zip(grads, model.trainable_variables))
+    
+    batch_history = calculate_metrics(labels,preds)    
 
-    return loss_eval, grads
+    return loss_eval, grads, batch_history
+
+def model_save():
+    pass
+
+def model_load():
+    pass
 
 if __name__ == '__main__':
     # Read config file
@@ -69,8 +77,8 @@ if __name__ == '__main__':
     model = GNN()
 
     # load data
-    train_data = get_dataset(config['train_dir'], config['n_train'])
-    train_list = [i for i in range(config['n_train'])]
+    train_data = get_dataset(config['train_dir'], None) #config['n_train'])
+    train_list = [i for i in range(len(train_data))]
 
     # execute the model on an example data to test things
     X, Ri, Ro, y = train_data[0]
@@ -85,9 +93,10 @@ if __name__ == '__main__':
             log_parameters(config['log_dir'], model.trainable_variables)
         epoch_start = 0
 
-        # Test the validation and training set
-        if config['n_valid']: test(config, model, 'valid')
-        if config['n_train']: test(config, model, 'train')
+        # Test the validation set
+        if config['n_valid']: validate(config, model)
+        else: 
+            raise ValueError('n_valid is not defined!')
     # Load old parameters if continuing run
     elif config['run_type'] == 'continue':
         # load params 
@@ -110,21 +119,47 @@ if __name__ == '__main__':
             str(datetime.datetime.now()) 
             + ': Training is continuing from epoch {}!'.format(epoch_start+1)
             )
-
+    # Lists to store loss and accuracy values per epoch
+    
     # Start training
     for epoch in range(epoch_start, config['n_epoch']):
         shuffle(train_list) # shuffle the order every epoch
+        # Initialize variables to accumulate metrics
+        
+        total_loss = 0.0
+        total_duration = 0
 
+        total_metrics = {
+            'accuracy_5': 0.0,
+            'auc': 0.0,
+            'precision_5': 0.0,
+            'accuracy_3': 0.0,
+            'precision_3': 0.0,
+            'recall_3': 0.0,
+            'f1_3': 0.0,
+            'accuracy_5': 0.0,
+            'precision_5': 0.0,
+            'recall_5': 0.0,
+            'f1_5': 0.0,
+            'accuracy_7': 0.0,
+            'precision_7': 0.0,
+            'recall_7': 0.0,
+            'f1_7': 0.0,
+            
+        }
         for n_step in range(config['n_train']//config['batch_size']):
             # start timer
             t0 = datetime.datetime.now()  
 
             # iterate a step
-            loss_eval, grads = batch_train_step(n_step)
-                        
+            loss_eval, grads, metrics_dict = batch_train_step(n_step)
+            total_loss += loss_eval
             # end timer
             dt = datetime.datetime.now() - t0  
             t = dt.seconds + dt.microseconds * 1e-6 # time spent in seconds
+            total_duration+=t
+            for metric_name, metric_value in metrics_dict.items():
+                total_metrics[metric_name] += metric_value
 
             # Print summary
             print(
@@ -140,20 +175,49 @@ if __name__ == '__main__':
                 f.write(
                     '%d, %d, %f, %f\n' \
                     %(epoch+1, n_step+1, loss_eval.numpy(), t)
-                    )
-
-	       # Log parameters
-            if config['log_verbosity']>=2:
-                log_parameters(config['log_dir'], model.trainable_variables)
-
-           # Log gradients
-            if config['log_verbosity']>=2:
-                log_gradients(config['log_dir'], grads)
-            
+                    )            
             # Test every TEST_every
-            if (n_step+1)%(config['n_train']//config['batch_size'])==0:
-                test(config, model, 'valid')
-                test(config, model, 'train')
+            #if (n_step+1)%config['TEST_every']==0:
+            # instead of testing every TEST_every we test every epoch
+            # this can move to outside of the n_step loop but keep it for the moment
+            # if (n_step+1)%(config['n_train']//config['batch_size'])==0:
+            #     test(config, model, 'valid')
+            #     test(config, model, 'train')
+        # save model checkpoints
+        # Log parameters
+        log_parameters(config['log_dir'], model, epoch)
+        # Log gradients
+        if config['log_verbosity']>=2:
+            log_gradients(config['log_dir'], grads)
+
+        avg_loss = total_loss / (config['n_train']//config['batch_size'])
+        # Calculate average metrics for the epoch
+        for metric_name in total_metrics:
+            total_metrics[metric_name] /= (config['n_train']//config['batch_size'])
+
+        # Log Metrics
+        with open(config['log_dir']+'log_training.csv', 'a') as f:
+            f.write('%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %d\n' % (
+                total_metrics['accuracy_5'],
+                total_metrics['auc'],
+                avg_loss,
+                total_metrics['precision_5'],
+                total_metrics['accuracy_3'],
+                total_metrics['precision_3'],
+                total_metrics['recall_3'],
+                total_metrics['f1_3'],
+                total_metrics['accuracy_5'],
+                total_metrics['precision_5'],
+                total_metrics['recall_5'],
+                total_metrics['f1_5'],
+                total_metrics['accuracy_7'],
+                total_metrics['precision_7'],
+                total_metrics['recall_7'],
+                total_metrics['f1_7'],
+                total_duration
+            ))
+        # run on validation datasets
+        validate(config, model)
 
     print(str(datetime.datetime.now()) + ': Training completed!')
-    model.save(config['log_dir']+"/tfmodel", save_format='tf') 
+    model.save(config['log_dir']+"/tfmodel", save_format='tf')

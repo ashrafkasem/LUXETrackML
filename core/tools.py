@@ -99,15 +99,9 @@ def init_all_logs(log_dir):
         f.write('epoch,batch,loss,duration\n')
 
 
-def log_parameters(log_dir, parameters):
-    for idx, params in enumerate(parameters):
-        params = params.numpy().flatten()
-        with open(log_dir+'log_parameters_%d.csv'%idx, 'a') as f:
-            for idy, item in enumerate(params):
-                f.write('%f'%item  )
-                if (idy+1)!=len(params):
-                    f.write(', ')
-            f.write('\n')
+def log_parameters(log_dir, model, epoch):
+    os.makedirs(log_dir+f"/check_points/tfmodel_check_point_epoch_{epoch}", exist_ok=True)
+    model.save(log_dir+f"/check_points/tfmodel_check_point_epoch_{epoch}", save_format='tf') 
 
 def log_gradients(log_dir, gradients):
     for idx, grads in enumerate(gradients):
@@ -118,74 +112,6 @@ def log_gradients(log_dir, gradients):
                 if (idy+1)!=len(grads):
                     f.write(', ')
             f.write('\n')
-
-def map2angle(arr0):
-    # Mapping the cylindrical coordinates to [0,1]
-    arr = np.zeros(arr0.shape, dtype=np.float32)
-    #r_min     = 0.
-    #r_max     = 1.1
-    #arr[:,0] = (arr0[:,0]-r_min)/(r_max-r_min)    
-
-    if (tools.config['dataset'] == 'mu200') or (tools.config['dataset'] == 'mu200_full'):
-        phi_min   = -1.0
-        phi_max   = 1.0
-        arr[:,1]  = (arr0[:,1]-phi_min)/(phi_max-phi_min) 
-        z_min     = 0
-        z_max     = 1.1
-        arr[:,2]  = (np.abs(arr0[:,2])-z_min)/(z_max-z_min)  # take abs of z due to symmetry of z
-
-    elif tools.config['dataset'] == 'mu200_1pT':
-        phi_max  = 1.
-        phi_min  = -phi_max
-        z_max    = 1.1
-        z_min    = -z_max
-        arr[:,1] = (arr0[:,1]-phi_min)/(phi_max-phi_min) 
-        arr[:,2] = (arr0[:,2]-z_min)/(z_max-z_min) 
-
-    elif (tools.config['dataset'] == 'mu10') or (tools.config['dataset'] == 'mu10_big'):
-        phi_min   = -1.0
-        phi_max   = 1.0
-        arr[:,1] = (arr0[:,1]-phi_min)/(phi_max-phi_min) 
-        z_min     = -1.1
-        z_max     = 1.1
-        arr[:,2] = (arr0[:,2]-z_min)/(z_max-z_min) 
-
-    mapping_check(arr)
-    return arr
-############################################################################################
-def mapping_check(arr):
-# check if every element of the input array is within limits [0,2*pi]
-    for row in arr:
-        for item in row:
-            if (item > 1) or (item < 0):
-                raise ValueError('WARNING!: WRONG MAPPING!!!!!!')
-
-def find_layer(arr):
-    layers = np.zeros(arr.shape[0])
-    for i in range(arr.shape[0]):
-        if arr[i,0] < 5e-2: 
-            layers[i] = 0
-        elif (arr[i,0] >= 5e-2) and (arr[i,0] < 9e-2):
-            layers[i] = 1
-        elif (arr[i,0] >= 9e-2) and (arr[i,0] < 15e-2):
-            layers[i] = 2
-        elif (arr[i,0] >= 15e-2) and (arr[i,0] < 2e-1):
-            layers[i] = 3 
-        elif (arr[i,0] >= 2e-1) and (arr[i,0] < 3e-1):
-            layers[i] = 4
-        elif (arr[i,0] >= 3e-1) and (arr[i,0] < 4e-1):
-            layers[i] = 5
-        elif (arr[i,0] >= 4e-1) and (arr[i,0] < 6e-1):
-            layers[i] = 6
-        elif (arr[i,0] >= 6e-1) and (arr[i,0] < 7.5e-1):
-            layers[i] = 7
-        elif (arr[i,0] >= 7.5e-1) and (arr[i,0] < 9e-1):
-            layers[i] = 8
-        elif (arr[i,0] >= 9e-1) and (arr[i,0] < 10.5e-1):
-            layers[i] = 9
-        else:
-            raise ValueError()
-    return layers
 
 def true_fake_weights(labels, dataset):
     '''
@@ -206,49 +132,14 @@ def true_fake_weights(labels, dataset):
     return [weight_list[int(labels[i])] for i in range(labels.shape[0])]
 
 def load_params(model, log_path):
-    n_layers = len(glob.glob('{}*{}*'.format(log_path,'parameters')))
-    if n_layers > 0:
-        for idx in range(n_layers):
-            param_file = log_path + 'log_parameters_%d'%(idx) + '.csv'
-            val_file   = log_path + 'log_validation.csv'
-            # read the last line of the parameter file
-            with open(param_file, 'r') as f:
-                reader = csv.reader(f, delimiter=',')  
-                params = np.array(list(reader)).astype(float)[-1]
-            with open(val_file, 'r') as f:
-                reader = csv.reader(f, delimiter=',')  
-                val = np.array(list(reader))
-            last_epoch = val.shape[0]-2
-            # make sure they have the same shape
-            params = np.resize(params, model.trainable_variables[idx].shape)
-            # Load the parameter to corresponding layer
+    n_epochs = len(glob.glob(f'{log_path}/check_points/tfmodel_check_point_epoch_*'))
+    last_epoch = n_epochs-1
+    model_dir = f'{log_path}/check_points/tfmodel_check_point_epoch_{last_epoch}'
+    loaded_model = tf.keras.models.load_model(model_dir)
+    for idx, params in enumerate(loaded_model.trainable_variables):
             model.trainable_variables[idx].assign(params)
-        return model, last_epoch
-    else:
-        raise ValueError('No parameter log found!')
-
-def get_value_from_dicts(dicts, label, network_label=None):
-    ''' Returns the values as an array from a dictionary of dictionaries
-    Args:
-        dicts (dict): dict of dicts
-
-        label (string): target label
-
-        network_label (string): target network label
+    return model, last_epoch+1
     
-    Retruns:
-        arr (list): list of the values of the corresponding label 
-    '''
-    arr = []
-    if network_label!=None:
-        for v in dicts.values():
-            arr.append(v[network_label][label])       
-    else:
-        for v in dicts.values():
-            arr.append(v[label])
-
-    return arr
-
 def get_configs(log_path_list):
     configs_dict = {}
     for path in log_path_list:

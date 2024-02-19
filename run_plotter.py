@@ -2,9 +2,9 @@ from core.plotting.plotter import plotterABC
 
 if __name__ == "__main__":
     plotter = plotterABC(
-        logs_dir="GNN_training_sampling",#"/Users/amohamed/dust/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling_wl1_reg_sgd/",
-        output_dir="outputplotter_Adam",
-        runs=[0,1,2,4],
+        logs_dir="/Users/amohamed/dust/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling_wl1_reg_sgd_5perc/",
+        output_dir="outputplotter_SGD",
+        runs=[0,1,2],
         formates=["png"],
         dataTypes=["training"],#["training"],#, "validation"],
         metrics=[
