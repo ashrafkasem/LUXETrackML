@@ -10,4 +10,4 @@
 unset LD_PRELOAD
 trkml
 source venv_maxwell/bin/activate 
-python train.py configs/config_maxwell.yaml 0
+python train.py $1 $2
