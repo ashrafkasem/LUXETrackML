@@ -10,11 +10,11 @@ n_train : 90
 lr_c : 0.001
 batch_size : 10
 n_iters : 4
-n_epoch : 100
+n_epoch : 200
 TEST_every : 90
 hid_dim : 128
 network : 'CNN'
-optimizer : 'SGD'
+optimizer : 'Adam'
 loss_func : 'BinaryCrossentropy'
 n_thread : 48
 log_verbosity : 1
