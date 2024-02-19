@@ -123,6 +123,7 @@ if __name__ == '__main__':
     
     # Start training
     for epoch in range(epoch_start, config['n_epoch']):
+        t_epoch0 = datetime.datetime.now()  
         shuffle(train_list) # shuffle the order every epoch
         # Initialize variables to accumulate metrics
         
@@ -157,7 +158,7 @@ if __name__ == '__main__':
             # end timer
             dt = datetime.datetime.now() - t0  
             t = dt.seconds + dt.microseconds * 1e-6 # time spent in seconds
-            total_duration+=t
+            
             for metric_name, metric_value in metrics_dict.items():
                 total_metrics[metric_name] += metric_value
 
@@ -183,6 +184,8 @@ if __name__ == '__main__':
             # if (n_step+1)%(config['n_train']//config['batch_size'])==0:
             #     test(config, model, 'valid')
             #     test(config, model, 'train')
+        t_epoch = datetime.datetime.now()  
+        total_duration = t_epoch0 - t_epoch
         # save model checkpoints
         # Log parameters
         log_parameters(config['log_dir'], model, epoch)
