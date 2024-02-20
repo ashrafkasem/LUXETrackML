@@ -186,6 +186,7 @@ if __name__ == '__main__':
             #     test(config, model, 'train')
         t_epoch = datetime.datetime.now()  
         total_duration = t_epoch0 - t_epoch
+        total_duration = total_duration.seconds + total_duration.microseconds * 1e-6 # time spent in seconds
         # save model checkpoints
         # Log parameters
         log_parameters(config['log_dir'], model, epoch)
