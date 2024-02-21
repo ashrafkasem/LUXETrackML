@@ -17,8 +17,8 @@ class EdgeNet(tf.keras.layers.Layer):
                 tf.keras.Input(
                     shape=(hid_dim + 3) * 2,
                 ),
-                tf.keras.layers.Dense(hid_dim, activation="tanh", kernel_regularizer='l1'),
-                tf.keras.layers.Dense(1, activation="sigmoid", kernel_regularizer='l1'),
+                tf.keras.layers.Dense(hid_dim, activation="tanh"),# kernel_regularizer='l1'),
+                tf.keras.layers.Dense(1, activation="sigmoid"),# kernel_regularizer='l1'),
             ]
         )
 
@@ -50,8 +50,8 @@ class NodeNet(tf.keras.layers.Layer):
                 tf.keras.Input(
                     shape=(hid_dim + 3) * 3,
                 ),
-                tf.keras.layers.Dense(hid_dim, activation="tanh", kernel_regularizer='l1'),
-                tf.keras.layers.Dense(hid_dim, activation="tanh", kernel_regularizer='l1'),
+                tf.keras.layers.Dense(hid_dim, activation="tanh"),#, kernel_regularizer='l1'),
+                tf.keras.layers.Dense(hid_dim, activation="tanh"),#, kernel_regularizer='l1'),
             ]
         )
 
@@ -82,7 +82,7 @@ class GNN(tf.keras.Model):
         self.InputNet = tf.keras.Sequential(
             [
                 tf.keras.layers.Dense(
-                    GNN.config["hid_dim"], input_shape=(3,), activation="tanh", kernel_regularizer='l1'
+                    GNN.config["hid_dim"], input_shape=(3,), activation="tanh"#, kernel_regularizer='l1'
                 )
             ],
             name="InputNet",
