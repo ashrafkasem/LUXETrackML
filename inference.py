@@ -10,6 +10,12 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
+class TrainingError(Exception):
+    """Training error class."""
+    pass
+
+
 if __name__ == '__main__':
     # Read config file
     config = load_config_infer(parse_args())
@@ -38,6 +44,13 @@ if __name__ == '__main__':
             model.trainable_variables[idx].assign(params)
         print(
             str(datetime.datetime.now()), f"Model is loaded from {model_dir}"
+            )
+    except TrainingError: 
+        loaded_model, check_point = load_params(model, f"{config['run_dir']}/run{config['run_number']}")
+        for idx, params in enumerate(loaded_model.trainable_variables):
+            model.trainable_variables[idx].assign(params)
+        print(
+            str(datetime.datetime.now()), f"Model is loaded from the last checkpoint {check_point}"
             )
     except Exception as e:
         print(
