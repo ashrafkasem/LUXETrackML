@@ -1,6 +1,6 @@
 inference_dir : '/home/amohamed/GPFS/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/datasets_sampling_graph_bootstrap_40/valid'
 n_inference : 100
-run_dir: '/home/amohamed/GPFS/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling_wl1_reg_sgd_30perc/'
+run_dir: '/home/amohamed/GPFS/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling_wl1_reg_sgd_noreg_30perc/'
 output_dir: '/home/amohamed/GPFS/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling_wl1_reg_sgd_30on40perc_predictions/'
 gpu : '0'
 n_thread : 48
