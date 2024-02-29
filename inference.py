@@ -42,21 +42,17 @@ if __name__ == '__main__':
         loaded_model = tf.keras.models.load_model(model_dir)
         for idx, params in enumerate(loaded_model.trainable_variables):
             model.trainable_variables[idx].assign(params)
-        print(
-            str(datetime.datetime.now()), f"Model is loaded from {model_dir}"
-            )
-    except TrainingError: 
-        loaded_model, check_point = load_params(model, f"{config['run_dir']}/run{config['run_number']}")
-        for idx, params in enumerate(loaded_model.trainable_variables):
-            model.trainable_variables[idx].assign(params)
-        print(
-            str(datetime.datetime.now()), f"Model is loaded from the last checkpoint {check_point}"
-            )
+        print(str(datetime.datetime.now()), f"Model is loaded from {model_dir}")
     except Exception as e:
-        print(
-            str(datetime.datetime.now()), f"could not load model from {model_dir}"
-            )
-        raise e
+        print(str(datetime.datetime.now()), f"Failed to load model from {model_dir}: {e}")
+        try:
+            loaded_model, check_point = load_params(model, f"{config['run_dir']}/run{config['run_number']}")
+            for idx, params in enumerate(loaded_model.trainable_variables):
+                model.trainable_variables[idx].assign(params)
+            print(str(datetime.datetime.now()), f"Model is loaded from the last checkpoint {check_point}")
+        except Exception as e:
+            print(str(datetime.datetime.now()), f"Failed to load model from the last checkpoint: {e}")
+            raise e
 
     datasets = get_dataset(config['inference_dir'], config['n_inference'])
 
