@@ -1,0 +1,8 @@
+inference_dir : '/home/amohamed/GPFS/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/datasets/valid'
+n_inference : 100
+run_dir: '/home/amohamed/GPFS/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling_wl1_reg_sgd_noreg_10perc/'
+output_dir: '/home/amohamed/GPFS/dust/ilc/user/amohamed/HTC/graph_building/LUXETrackML/GNN_training_sampling_wl1_reg_sgd_10on100perc_predictions/'
+gpu : '0'
+n_thread : 48
+hid_dim : 128
+n_iters : 4
